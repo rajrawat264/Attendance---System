@@ -6,23 +6,68 @@
 <style>
 
 body{
-font-family: Arial;
-margin:40px;
+font-family: Arial, sans-serif;
+background:#f4f6f9;
+margin:0;
+padding:40px;
 }
 
-li{
+h1{
+text-align:center;
+color:#333;
+}
+
+h2{
+color:#444;
+}
+
+input{
 padding:10px;
 margin:5px;
-list-style:none;
+border-radius:6px;
+border:1px solid #ccc;
+width:200px;
 }
 
 button{
+padding:8px 12px;
 margin-left:5px;
+border:none;
+border-radius:6px;
+background:#007bff;
+color:white;
+cursor:pointer;
+}
+
+button:hover{
+background:#0056b3;
+}
+
+#studentList li{
+background:white;
+padding:12px;
+margin:10px 0;
+border-radius:6px;
+list-style:none;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+
+.present{
+background:#c8f7c5 !important;
+}
+
+.absent{
+background:#f7c5c5 !important;
 }
 
 .dashboard{
 margin-top:20px;
+font-size:18px;
 font-weight:bold;
+background:white;
+padding:15px;
+border-radius:6px;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
 }
 
 </style>
@@ -34,9 +79,11 @@ font-weight:bold;
 <h1>Cloud-Based Student Attendance Management System</h1>
 
 <h2>Add Student</h2>
+
 <input type="text" id="roll" placeholder="Enter Roll No (10 characters)" maxlength="10"><br><br>
 
 <input type="text" id="name" placeholder="Enter Name"><br><br>
+
 <input type="text" id="class" placeholder="Enter Class"><br><br>
 
 <button onclick="addStudent()">Add Student</button>
@@ -46,13 +93,16 @@ font-weight:bold;
 <ul id="studentList"></ul>
 
 <div class="dashboard">
+
 <p>Total Students: <span id="total">0</span></p>
+
 <p>Present: <span id="present">0</span></p>
+
 <p>Absent: <span id="absent">0</span></p>
+
 </div>
 
 <script src="script.js"></script>
 
 </body>
-
 </html>

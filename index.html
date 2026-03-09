@@ -1,0 +1,58 @@
+!DOCTYPE html>
+<html>
+
+<head>
+<title>Cloud Attendance System</title>
+
+<style>
+
+body{
+font-family: Arial;
+margin:40px;
+}
+
+li{
+padding:10px;
+margin:5px;
+list-style:none;
+}
+
+button{
+margin-left:5px;
+}
+
+.dashboard{
+margin-top:20px;
+font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Cloud-Based Student Attendance Management System</h1>
+
+<h2>Add Student</h2>
+
+<input type="text" id="name" placeholder="Enter Name"><br><br>
+<input type="text" id="class" placeholder="Enter Class"><br><br>
+
+<button onclick="addStudent()">Add Student</button>
+
+<h2>Student List</h2>
+
+<ul id="studentList"></ul>
+
+<div class="dashboard">
+<p>Total Students: <span id="total">0</span></p>
+<p>Present: <span id="present">0</span></p>
+<p>Absent: <span id="absent">0</span></p>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>

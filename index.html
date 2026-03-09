@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+
 <title>Cloud Attendance System</title>
 
 <style>
@@ -8,8 +10,17 @@
 body{
 font-family: Arial, sans-serif;
 background:#f4f6f9;
-margin:0;
-padding:40px;
+display:flex;
+justify-content:center;
+padding-top:40px;
+}
+
+.container{
+background:#f1f3f6;
+padding:30px;
+border-radius:10px;
+width:650px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
 }
 
 h1{
@@ -26,12 +37,12 @@ padding:10px;
 margin:5px;
 border-radius:6px;
 border:1px solid #ccc;
-width:200px;
+width:220px;
 }
 
 button{
 padding:8px 12px;
-margin-left:5px;
+margin-top:5px;
 border:none;
 border-radius:6px;
 background:#007bff;
@@ -76,6 +87,8 @@ box-shadow:0 2px 6px rgba(0,0,0,0.1);
 
 <body>
 
+<div class="container">
+
 <h1>Cloud-Based Student Attendance Management System</h1>
 
 <h2>Add Student</h2>
@@ -99,6 +112,8 @@ box-shadow:0 2px 6px rgba(0,0,0,0.1);
 <p>Present: <span id="present">0</span></p>
 
 <p>Absent: <span id="absent">0</span></p>
+
+</div>
 
 </div>
 

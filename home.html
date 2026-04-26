@@ -3,83 +3,317 @@
 <head>
 <title>Attendance Management System</title>
 <style>
-* { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:Arial; background:#f4f6f9; min-height:100vh; }
-.header { background:#007bff; color:white; padding:0 20px; height:58px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; box-shadow:0 2px 8px rgba(0,0,0,0.15); }
-.header h2 { font-size:18px; }
-.header-right { display:flex; align-items:center; gap:14px; }
-.date-label { font-size:13px; background:rgba(255,255,255,0.2); padding:4px 12px; border-radius:20px; }
-button { padding:9px 16px; border:none; border-radius:6px; color:white; cursor:pointer; font-size:13px; font-weight:bold; transition:0.2s; }
-button:hover { opacity:0.88; transform:translateY(-1px); }
-.btn-logout  { background:#1e293b; }
-.btn-add     { background:#16a34a; }
-.btn-undo    { background:#ea580c; }
-.btn-percent { background:#7c3aed; }
-.btn-search  { background:#0891b2; }
-.btn-reset   { background:#6c757d; }
-.btn-present { background:green; padding:5px 10px; font-size:12px; }
-.btn-absent  { background:red; padding:5px 10px; font-size:12px; }
-.btn-delete  { background:gray; padding:5px 10px; font-size:12px; }
-.container { padding:20px; max-width:1100px; margin:0 auto; }
-.stats { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:20px; }
-.stat-box { background:white; border-radius:10px; padding:16px 20px; border:1px solid #e2e8f0; }
-.stat-box .label { font-size:12px; font-weight:bold; color:#94a3b8; text-transform:uppercase; }
-.stat-box .value { font-size:30px; font-weight:bold; margin-top:4px; }
-.value.blue{color:#007bff;} .value.green{color:#16a34a;} .value.red{color:#dc2626;}
-.panel { background:white; border-radius:10px; padding:18px 20px; border:1px solid #e2e8f0; margin-bottom:16px; }
-.panel-title { font-size:14px; font-weight:bold; color:#1e293b; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid #f1f5f9; }
-.form-row { display:grid; grid-template-columns:1fr 2fr 1fr; gap:10px; margin-bottom:12px; }
-input[type="text"],input[type="email"],input[type="password"] { width:100%; padding:10px 12px; border:1.5px solid #e2e8f0; border-radius:6px; font-size:13px; }
-input:focus { outline:none; border-color:#007bff; box-shadow:0 0 0 3px rgba(0,123,255,0.1); }
-.btn-row { display:flex; gap:10px; flex-wrap:wrap; }
-.search-row { display:flex; gap:10px; align-items:center; }
-.search-row input { flex:1; }
-.table-wrap { background:white; border-radius:10px; border:1px solid #e2e8f0; overflow:hidden; }
-table { width:100%; border-collapse:collapse; font-size:13px; }
-thead tr { background:#1e293b; }
-thead th { padding:12px; color:white; font-size:11px; text-transform:uppercase; text-align:center; }
-tbody tr { border-bottom:1px solid #f1f5f9; }
-tbody tr:hover { background:#f8fafc; }
-td { padding:11px 12px; text-align:center; color:#1e293b; }
-.badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:bold; }
-.badge-present{background:#dcfce7;color:#16a34a;} .badge-absent{background:#fee2e2;color:#dc2626;} .badge-none{background:#f1f5f9;color:#94a3b8;}
-.td-actions { display:flex; gap:5px; justify-content:center; }
-.pct-wrap { display:flex; align-items:center; gap:6px; justify-content:center; }
-.pct-track { width:55px; height:6px; background:#e2e8f0; border-radius:99px; overflow:hidden; }
-.pct-fill  { height:100%; border-radius:99px; }
-.pct-text  { font-size:12px; font-weight:bold; min-width:34px; }
-.empty { text-align:center; padding:40px; color:#94a3b8; font-size:14px; }
-#toast { position:fixed; bottom:24px; right:24px; background:#1e293b; color:white; padding:11px 18px; border-radius:8px; font-size:13px; font-weight:500; opacity:0; transform:translateY(8px); transition:all 0.25s; z-index:999; }
-#toast.show { opacity:1; transform:translateY(0); }
-#toast.t-success{border-left:4px solid #16a34a;} #toast.t-error{border-left:4px solid #dc2626;} #toast.t-info{border-left:4px solid #007bff;}
-.overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:200; align-items:center; justify-content:center; }
-.overlay.open { display:flex; }
-.modal { background:white; border-radius:14px; width:500px; max-width:95vw; max-height:80vh; overflow-y:auto; }
-.modal-head { padding:18px 22px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; }
-.modal-head h3 { font-size:15px; }
-.modal-close { background:#f1f5f9; color:#475569; width:28px; height:28px; border-radius:50%; border:none; cursor:pointer; font-size:15px; padding:0; }
-.modal-body { padding:18px 22px; }
-.month-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #f1f5f9; }
-.month-name{font-weight:bold;font-size:13px;} .month-sub{font-size:11px;color:#94a3b8;margin-top:2px;}
-.pct-big{font-size:20px;font-weight:bold;} .pct-good{color:#16a34a;} .pct-warn{color:#ea580c;} .pct-bad{color:#dc2626;}
-.student-block { margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid #f1f5f9; }
-.student-title { font-weight:bold; font-size:14px; margin-bottom:8px; display:flex; justify-content:space-between; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Arial;
+  background: #f4f6f9;
+  min-height: 100vh;
+}
+
+/* HEADER */
+.header {
+  background: #007bff;
+  color: white;
+  padding: 0 20px;
+  height: 58px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.header h2 { font-size: 18px; }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.date-label {
+  font-size: 13px;
+  background: rgba(255,255,255,0.2);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* BUTTONS */
+button {
+  padding: 9px 16px;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+button:hover { opacity: 0.88; transform: translateY(-1px); }
+
+.btn-logout  { background: #1e293b; }
+.btn-add     { background: #16a34a; }
+.btn-undo    { background: #ea580c; }
+.btn-percent { background: #7c3aed; }
+.btn-search  { background: #0891b2; }
+.btn-reset   { background: #6c757d; }
+.btn-present { background: green;   padding: 5px 10px; font-size: 12px; }
+.btn-absent  { background: red;     padding: 5px 10px; font-size: 12px; }
+.btn-delete  { background: gray;    padding: 5px 10px; font-size: 12px; }
+
+/* CONTAINER */
+.container { padding: 20px; max-width: 1100px; margin: 0 auto; }
+
+/* STATS */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.stat-box {
+  background: white;
+  border-radius: 10px;
+  padding: 16px 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.stat-box .label { font-size: 12px; font-weight: bold; color: #94a3b8; text-transform: uppercase; }
+.stat-box .value { font-size: 30px; font-weight: bold; margin-top: 4px; }
+.stat-box .value.blue  { color: #007bff; }
+.stat-box .value.green { color: #16a34a; }
+.stat-box .value.red   { color: #dc2626; }
+
+/* PANELS */
+.panel {
+  background: white;
+  border-radius: 10px;
+  padding: 18px 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  margin-bottom: 16px;
+}
+
+.panel-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #1e293b;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+input[type="text"], input[type="email"], input[type="password"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: border 0.2s;
+}
+
+input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+}
+
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.search-row { display: flex; gap: 10px; align-items: center; }
+.search-row input { flex: 1; }
+
+/* TABLE */
+.table-wrap {
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+thead tr { background: #1e293b; }
+thead th {
+  padding: 12px;
+  color: white;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.15s; }
+tbody tr:hover { background: #f8fafc; }
+tbody tr:last-child { border-bottom: none; }
+
+td { padding: 11px 12px; text-align: center; color: #1e293b; }
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+}
+.badge-present { background: #dcfce7; color: #16a34a; }
+.badge-absent  { background: #fee2e2; color: #dc2626; }
+.badge-none    { background: #f1f5f9; color: #94a3b8; }
+
+.td-actions { display: flex; gap: 5px; justify-content: center; }
+
+/* PROGRESS BAR */
+.pct-wrap { display: flex; align-items: center; gap: 6px; justify-content: center; }
+.pct-track { width: 55px; height: 6px; background: #e2e8f0; border-radius: 99px; overflow: hidden; }
+.pct-fill  { height: 100%; border-radius: 99px; }
+.pct-text  { font-size: 12px; font-weight: bold; min-width: 34px; }
+
+.empty {
+  text-align: center;
+  padding: 40px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* TOAST */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #1e293b;
+  color: white;
+  padding: 11px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.25s;
+  z-index: 999;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+#toast.t-success { border-left: 4px solid #16a34a; }
+#toast.t-error   { border-left: 4px solid #dc2626; }
+#toast.t-info    { border-left: 4px solid #007bff; }
+
+/* MODAL */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+.overlay.open { display: flex; }
+
+.modal {
+  background: white;
+  border-radius: 14px;
+  width: 500px;
+  max-width: 95vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.modal-head {
+  padding: 18px 22px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-head h3 { font-size: 15px; }
+
+.modal-close {
+  background: #f1f5f9;
+  color: #475569;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 15px;
+  border: none;
+  padding: 0;
+}
+
+.modal-close:hover { background: #e2e8f0; }
+.modal-body { padding: 18px 22px; }
+
+.month-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.month-row:last-child { border-bottom: none; }
+.month-name { font-weight: bold; font-size: 13px; }
+.month-sub  { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+.pct-big    { font-size: 20px; font-weight: bold; }
+.pct-good   { color: #16a34a; }
+.pct-warn   { color: #ea580c; }
+.pct-bad    { color: #dc2626; }
+
+.student-block {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.student-block:last-child { border-bottom: none; }
+.student-title { font-weight: bold; font-size: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; }
 </style>
 </head>
 <body>
+
 <div class="header">
-  <h2>Attendance System</h2>
+  <h2>📋 Attendance System</h2>
   <div class="header-right">
     <span class="date-label" id="headerDate"></span>
     <button class="btn-logout" onclick="logout()">Logout</button>
   </div>
 </div>
+
 <div class="container">
+
+  <!-- STATS -->
   <div class="stats">
-    <div class="stat-box"><div class="label">Total Students</div><div class="value blue" id="total">0</div></div>
-    <div class="stat-box"><div class="label">Present Today</div><div class="value green" id="present">0</div></div>
-    <div class="stat-box"><div class="label">Absent Today</div><div class="value red" id="absent">0</div></div>
+    <div class="stat-box">
+      <div class="label">Total Students</div>
+      <div class="value blue" id="total">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">Present Today</div>
+      <div class="value green" id="present">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">Absent Today</div>
+      <div class="value red" id="absent">0</div>
+    </div>
   </div>
+
+  <!-- ADD STUDENT -->
   <div class="panel">
     <div class="panel-title">Add New Student</div>
     <div class="form-row">
@@ -88,51 +322,81 @@ td { padding:11px 12px; text-align:center; color:#1e293b; }
       <input type="text" id="class" placeholder="Class / Section">
     </div>
     <div class="btn-row">
-      <button class="btn-add" onclick="addStudent()">+ Add Student</button>
-      <button class="btn-undo" onclick="undoDelete()">Undo Delete</button>
-      <button class="btn-percent" onclick="showMonthlyPercentage()">Monthly %</button>
+      <button class="btn-add"     onclick="addStudent()">+ Add Student</button>
+      <button class="btn-undo"    onclick="undoDelete()">↩ Undo Delete</button>
+      <button class="btn-percent" onclick="showMonthlyPercentage()">📊 Monthly %</button>
     </div>
   </div>
+
+  <!-- SEARCH -->
   <div class="panel">
     <div class="panel-title">Search Students</div>
     <div class="search-row">
-      <input type="text" id="searchInput" placeholder="Search by Roll No or Name">
+      <input type="text" id="searchInput" placeholder="Search by Roll No or Name…">
       <button class="btn-search" onclick="searchStudent()">Search</button>
-      <button class="btn-reset" onclick="resetSearch()">Reset</button>
+      <button class="btn-reset"  onclick="resetSearch()">Reset</button>
     </div>
   </div>
+
+  <!-- TABLE -->
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Date</th><th>Roll No</th><th>Name</th><th>Class</th><th>Status</th><th>Actions</th><th>Attendance %</th></tr></thead>
-      <tbody id="tableBody"><tr><td colspan="7"><div class="empty">No students added yet.</div></td></tr></tbody>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Roll No</th>
+          <th>Name</th>
+          <th>Class</th>
+          <th>Status</th>
+          <th>Actions</th>
+          <th>Attendance %</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="7"><div class="empty">No students added yet.</div></td></tr>
+      </tbody>
     </table>
   </div>
+
 </div>
+
+<!-- Monthly Modal -->
 <div class="overlay" id="overlay">
   <div class="modal">
     <div class="modal-head">
-      <h3>Monthly Attendance Report</h3>
-      <button class="modal-close" onclick="closeModal()">x</button>
+      <h3>📊 Monthly Attendance Report</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body" id="modalBody"></div>
   </div>
 </div>
+
+<!-- Toast -->
 <div id="toast"></div>
+
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="app.js"></script>
+
 <script>
+  // Redirect to login if not logged in
   auth.onAuthStateChanged(user => {
-    if (!user) { window.location.href = "index.html"; }
-    else {
+    if (!user) {
+      window.location.href = "index.html";
+    } else {
       startListener(user.uid);
       document.getElementById("headerDate").textContent =
-        new Date().toLocaleDateString("en-GB", {weekday:"long",day:"numeric",month:"long",year:"numeric"});
+        new Date().toLocaleDateString("en-GB", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
     }
   });
-  document.getElementById("overlay").addEventListener("click", function(e){ if(e.target===this) closeModal(); });
+
+  // Close modal on outside click
+  document.getElementById("overlay").addEventListener("click", function(e) {
+    if (e.target === this) closeModal();
+  });
 </script>
+
 </body>
 </html>
-}

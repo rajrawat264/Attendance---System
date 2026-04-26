@@ -42,12 +42,6 @@ button {
   color: white;
   cursor: pointer;
   margin: 5px;
-  transition: 0.2s;
-}
-
-button:hover {
-  opacity: 0.9;
-  transform: scale(1.03);
 }
 
 .login { background: #007bff; }
@@ -60,12 +54,11 @@ button:hover {
   min-height: 100vh;
 }
 
-/* FIXED HEADER */
+/* HEADER */
 .header {
   background: #007bff;
   color: white;
   padding: 15px 20px;
-
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -74,12 +67,10 @@ button:hover {
 .logout {
   background: black;
   padding: 8px 15px;
-  border-radius: 6px;
 }
 
-.container {
-  padding: 20px;
-}
+/* MAIN */
+.container { padding: 20px; }
 
 .add { background: #28a745; }
 .present { background: green; }
@@ -87,7 +78,6 @@ button:hover {
 .delete { background: gray; }
 .undo { background: orange; }
 .percentBtn { background: purple; }
-
 .search { background: #17a2b8; }
 .reset { background: #6c757d; }
 
@@ -108,15 +98,15 @@ th {
   color: white;
 }
 
-/* STATUS COLORS */
+/* STATUS FULL CELL COLOR */
 .status-present {
-  background-color: #d4edda;
+  background-color: #d4edda !important;
   color: #155724;
   font-weight: bold;
 }
 
 .status-absent {
-  background-color: #f8d7da;
+  background-color: #f8d7da !important;
   color: #721c24;
   font-weight: bold;
 }
@@ -155,7 +145,7 @@ th {
 <div id="dashboard">
 
   <div class="header">
-    <h2 style="margin:0;">Attendance System</h2>
+    <h2>Attendance System</h2>
     <button class="logout" onclick="logout()">Logout</button>
   </div>
 
@@ -169,7 +159,6 @@ th {
 
     <button class="add" onclick="addStudent()">Add</button>
     <button class="undo" onclick="undoDelete()">Undo Delete</button>
-    <button class="percentBtn" onclick="showMonthlyPercentage()">Show Monthly %</button>
 
     <br><br>
 
@@ -210,8 +199,8 @@ let deletedStudent = null;
 
 // AUTO LOGIN
 auth.onAuthStateChanged(user => {
-  loginPage.style.display = user ? "none" : "flex";
-  dashboard.style.display = user ? "block" : "none";
+  document.getElementById("loginPage").style.display = user ? "none" : "flex";
+  document.getElementById("dashboard").style.display = user ? "block" : "none";
 });
 
 // AUTH
@@ -223,7 +212,12 @@ function signUp() {
 
 function login() {
   auth.signInWithEmailAndPassword(email.value, password.value)
-    .then(()=>alert("Login Successful"))
+    .then(()=>{
+      alert("Login Successful");
+
+      document.getElementById("loginPage").style.display = "none";
+      document.getElementById("dashboard").style.display = "block";
+    })
     .catch(err=>alert(err.message));
 }
 
@@ -231,20 +225,19 @@ function logout() {
   auth.signOut();
 }
 
-// ADD STUDENT (FIXED)
+// ADD STUDENT
 function addStudent() {
   let s = {
-    roll: document.getElementById("roll").value,
-    name: document.getElementById("studentName").value,
+    roll: roll.value,
+    name: studentName.value,
     cls: document.getElementById("class").value,
     attendance: {}
   };
 
   students.push(s);
 
-  // clear fields
-  document.getElementById("roll").value = "";
-  document.getElementById("studentName").value = "";
+  roll.value = "";
+  studentName.value = "";
   document.getElementById("class").value = "";
 
   display();
@@ -262,7 +255,6 @@ function display(list = students) {
     <th>Class</th>
     <th>Status</th>
     <th>Action</th>
-    <th>%</th>
   </tr>`;
 
   let today = new Date().toLocaleDateString("en-GB");
@@ -270,8 +262,8 @@ function display(list = students) {
   let presentCount = 0;
   let absentCount = 0;
 
-  list.forEach((s) => {
-    let i = students.indexOf(s);
+  list.forEach((s, i) => {
+
     let status = s.attendance[today] || "--";
 
     if (status === "Present") presentCount++;
@@ -292,7 +284,6 @@ function display(list = students) {
         <button class="absent" onclick="mark(${i},'Absent')">A</button>
         <button class="delete" onclick="del(${i})">Delete</button>
       </td>
-      <td>--</td>
     </tr>`;
   });
 

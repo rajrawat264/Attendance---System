@@ -1,341 +1,81 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Attendance Management System</title>
-
+<title>Attendance - Login</title>
 <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  margin: 0;
   font-family: Arial;
-  background: linear-gradient(to right, #667eea, #764ba2);
-}
-
-/* LOGIN */
-#loginPage {
-  height: 100vh;
+  background: linear-gradient(135deg, #1e293b, #1e3a8a, #312e81);
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
 }
-
 .card {
   background: white;
   padding: 40px;
-  border-radius: 12px;
-  width: 350px;
-  text-align: center;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  border-radius: 14px;
+  width: 360px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
-
-input {
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-button {
-  padding: 10px;
-  border: none;
-  border-radius: 6px;
-  color: white;
-  cursor: pointer;
-  margin: 5px;
-  transition: 0.2s;
-}
-
-button:hover {
-  opacity: 0.9;
-  transform: scale(1.03);
-}
-
-.login { background: #007bff; }
-.signup { background: #28a745; }
-
-/* DASHBOARD */
-#dashboard {
-  display: none;
-  background: #f4f6f9;
-  min-height: 100vh;
-}
-
-/* FIXED HEADER */
-.header {
-  background: #007bff;
-  color: white;
-  padding: 15px 20px;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logout {
-  background: black;
-  padding: 8px 15px;
-  border-radius: 6px;
-}
-
-.container {
-  padding: 20px;
-}
-
-.add { background: #28a745; }
-.present { background: green; }
-.absent { background: red; }
-.delete { background: gray; }
-.undo { background: orange; }
-.percentBtn { background: purple; }
-
-.search { background: #17a2b8; }
-.reset { background: #6c757d; }
-
-table {
-  width: 100%;
-  margin-top: 20px;
-  border-collapse: collapse;
-}
-
-th, td {
-  padding: 12px;
-  border: 1px solid #ccc;
-  text-align: center;
-}
-
-th {
-  background: #007bff;
-  color: white;
-}
-
-/* STATUS COLORS */
-.status-present {
-  background-color: #d4edda;
-  color: #155724;
-  font-weight: bold;
-}
-
-.status-absent {
-  background-color: #f8d7da;
-  color: #721c24;
-  font-weight: bold;
-}
-
-/* SUMMARY */
-.summary {
-  margin-top: 20px;
-  padding: 15px;
-  background: white;
-  border-radius: 10px;
-  display: flex;
-  justify-content: space-around;
-  font-weight: bold;
-}
-
-.presentBox { color: green; }
-.absentBox { color: red; }
-
+.card h2 { text-align:center; margin-bottom:6px; font-size:22px; color:#1e293b; }
+.card p  { text-align:center; color:#94a3b8; font-size:13px; margin-bottom:24px; }
+label { display:block; font-size:13px; font-weight:bold; color:#475569; margin-bottom:5px; margin-top:12px; }
+input { width:100%; padding:11px 14px; border:1.5px solid #e2e8f0; border-radius:6px; font-size:14px; transition:border 0.2s; }
+input:focus { outline:none; border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
+.btn-row { display:flex; gap:10px; margin-top:20px; }
+button { flex:1; padding:11px; border:none; border-radius:6px; font-size:14px; font-weight:bold; color:white; cursor:pointer; transition:0.2s; }
+button:hover { opacity:0.88; transform:translateY(-1px); }
+.btn-login  { background:#2563eb; }
+.btn-signup { background:#16a34a; }
+#msg { margin-top:14px; font-size:13px; text-align:center; min-height:18px; }
 </style>
 </head>
-
 <body>
-
-<!-- LOGIN -->
-<div id="loginPage">
-  <div class="card">
-    <h2>Teacher Login</h2>
-    <input type="email" id="email" placeholder="Enter Email">
-    <input type="password" id="password" placeholder="Enter Password">
-    <button class="signup" onclick="signUp()">Sign Up</button>
-    <button class="login" onclick="login()">Login</button>
+<div class="card">
+  <h2>Teacher Portal</h2>
+  <p>Attendance Management System</p>
+  <label>Email Address</label>
+  <input type="email" id="email" placeholder="teacher@college.edu">
+  <label>Password</label>
+  <input type="password" id="password" placeholder="Password">
+  <div class="btn-row">
+    <button class="btn-signup" onclick="signUp()">Sign Up</button>
+    <button class="btn-login"  onclick="login()">Login</button>
   </div>
+  <div id="msg"></div>
 </div>
 
-<!-- DASHBOARD -->
-<div id="dashboard">
-
-  <div class="header">
-    <h2 style="margin:0;">Attendance System</h2>
-    <button class="logout" onclick="logout()">Logout</button>
-  </div>
-
-  <div class="container">
-
-    <h3>Add Student</h3>
-
-    <input type="text" id="roll" placeholder="Roll No">
-    <input type="text" id="studentName" placeholder="Name">
-    <input type="text" id="class" placeholder="Class">
-
-    <button class="add" onclick="addStudent()">Add</button>
-    <button class="undo" onclick="undoDelete()">Undo Delete</button>
-    <button class="percentBtn" onclick="showMonthlyPercentage()">Show Monthly %</button>
-
-    <br><br>
-
-    <!-- SEARCH -->
-    <input type="text" id="searchRoll" placeholder="Search by Roll No">
-    <button class="search" onclick="searchStudent()">Search</button>
-    <button class="reset" onclick="resetSearch()">Reset</button>
-
-    <table id="table"></table>
-
-    <!-- SUMMARY -->
-    <div class="summary">
-      <div>Total Students: <span id="total">0</span></div>
-      <div class="presentBox">Present: <span id="present">0</span></div>
-      <div class="absentBox">Absent: <span id="absent">0</span></div>
-    </div>
-
-  </div>
-</div>
-
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="app.js"></script>
 <script>
-
-const firebaseConfig = {
-  apiKey: "AIzaSyB9WOvs0Ryr3TEpujroDzgb0xJTwESv_FU",
-  authDomain: "attendance-management-sy-41cce.firebaseapp.com",
-  projectId: "attendance-management-sy-41cce"
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-
-let students = [];
-let deletedStudent = null;
-
-// AUTO LOGIN
-auth.onAuthStateChanged(user => {
-  loginPage.style.display = user ? "none" : "flex";
-  dashboard.style.display = user ? "block" : "none";
-});
-
-// AUTH
-function signUp() {
-  auth.createUserWithEmailAndPassword(email.value, password.value)
-    .then(()=>alert("Signup Successful"))
-    .catch(err=>alert(err.message));
-}
-
-function login() {
-  auth.signInWithEmailAndPassword(email.value, password.value)
-    .then(()=>alert("Login Successful"))
-    .catch(err=>alert(err.message));
-}
-
-function logout() {
-  auth.signOut();
-}
-
-// ADD STUDENT (FIXED)
-function addStudent() {
-  let s = {
-    roll: document.getElementById("roll").value,
-    name: document.getElementById("studentName").value,
-    cls: document.getElementById("class").value,
-    attendance: {}
-  };
-
-  students.push(s);
-
-  // clear fields
-  document.getElementById("roll").value = "";
-  document.getElementById("studentName").value = "";
-  document.getElementById("class").value = "";
-
-  display();
-}
-
-// DISPLAY
-function display(list = students) {
-  let table = document.getElementById("table");
-
-  table.innerHTML = `
-  <tr>
-    <th>Date</th>
-    <th>Roll No</th>
-    <th>Name</th>
-    <th>Class</th>
-    <th>Status</th>
-    <th>Action</th>
-    <th>%</th>
-  </tr>`;
-
-  let today = new Date().toLocaleDateString("en-GB");
-
-  let presentCount = 0;
-  let absentCount = 0;
-
-  list.forEach((s) => {
-    let i = students.indexOf(s);
-    let status = s.attendance[today] || "--";
-
-    if (status === "Present") presentCount++;
-    if (status === "Absent") absentCount++;
-
-    let cls = status === "Present" ? "status-present" :
-              status === "Absent" ? "status-absent" : "";
-
-    table.innerHTML += `
-    <tr>
-      <td>${today}</td>
-      <td>${s.roll}</td>
-      <td>${s.name}</td>
-      <td>${s.cls}</td>
-      <td class="${cls}">${status}</td>
-      <td>
-        <button class="present" onclick="mark(${i},'Present')">P</button>
-        <button class="absent" onclick="mark(${i},'Absent')">A</button>
-        <button class="delete" onclick="del(${i})">Delete</button>
-      </td>
-      <td>--</td>
-    </tr>`;
+  auth.onAuthStateChanged(user => {
+    if (user) window.location.href = "attendance.html";
   });
-
-  document.getElementById("total").innerText = list.length;
-  document.getElementById("present").innerText = presentCount;
-  document.getElementById("absent").innerText = absentCount;
-}
-
-// MARK
-function mark(i, s) {
-  let today = new Date().toLocaleDateString("en-GB");
-  students[i].attendance[today] = s;
-  display();
-}
-
-// DELETE
-function del(i) {
-  deletedStudent = students[i];
-  students.splice(i,1);
-  display();
-}
-
-// UNDO
-function undoDelete() {
-  if(deletedStudent){
-    students.push(deletedStudent);
-    deletedStudent=null;
-    display();
+  function signUp() {
+    const email = document.getElementById("email").value.trim();
+    const pass  = document.getElementById("password").value;
+    if (!email || !pass) return showMsg("Please fill all fields.", "red");
+    auth.createUserWithEmailAndPassword(email, pass)
+      .then(() => { showMsg("Account created! Redirecting...", "green"); setTimeout(() => window.location.href = "attendance.html", 1000); })
+      .catch(err => showMsg(err.message, "red"));
   }
-}
-
-// SEARCH
-function searchStudent(){
-  let val = searchRoll.value;
-  display(students.filter(s=>s.roll.includes(val)));
-}
-
-function resetSearch(){
-  searchRoll.value="";
-  display();
-}
-
+  function login() {
+    const email = document.getElementById("email").value.trim();
+    const pass  = document.getElementById("password").value;
+    if (!email || !pass) return showMsg("Please fill all fields.", "red");
+    auth.signInWithEmailAndPassword(email, pass)
+      .then(() => { showMsg("Login successful! Redirecting...", "green"); setTimeout(() => window.location.href = "attendance.html", 1000); })
+      .catch(err => showMsg(err.message, "red"));
+  }
+  function showMsg(msg, color) {
+    const el = document.getElementById("msg");
+    el.textContent = msg;
+    el.style.color = color;
+  }
 </script>
-
 </body>
 </html>

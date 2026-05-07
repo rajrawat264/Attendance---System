@@ -60,6 +60,11 @@ button:hover { opacity: 0.88; transform: translateY(-1px); }
 .btn-undo    { background: #ea580c; }
 .btn-percent { background: #7c3aed; }
 .btn-bulk    { background: #0369a1; }
+.btn-all-p   { background: #15803d; }
+.btn-all-a   { background: #b91c1c; }
+.btn-export  { background: #0f766e; }
+.alert-low   { background: #fef2f2; border-left: 4px solid #dc2626; padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; font-size: 13px; color: #991b1b; font-weight: 600; display:none; }
+.badge-warning { background: #fef3c7; color: #92400e; font-size: 11px; padding: 2px 7px; border-radius: 10px; margin-left: 6px; font-weight: 700; }
 .btn-sample  { background: #475569; font-size:12px; padding:7px 12px; }
 .bulk-info { background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:12px 16px; font-size:13px; color:#1e40af; margin-bottom:16px; line-height:1.6; }
 .bulk-info code { background:#dbeafe; padding:2px 6px; border-radius:4px; font-family:monospace; font-size:12px; }
@@ -335,6 +340,9 @@ td { padding: 11px 12px; text-align: center; color: #1e293b; }
       <button class="btn-undo"    onclick="undoDelete()">↩ Undo Delete</button>
       <button class="btn-percent" onclick="showMonthlyPercentage()">📊 Monthly %</button>
       <button class="btn-bulk"    onclick="openBulkModal()">📥 Bulk Import</button>
+      <button class="btn-all-p"  onclick="markAll('Present')">✅ Mark All Present</button>
+      <button class="btn-all-a"  onclick="markAll('Absent')">❌ Mark All Absent</button>
+      <button class="btn-export" onclick="exportToExcel()">📊 Export to Excel</button>
     </div>
   </div>
 
@@ -349,6 +357,7 @@ td { padding: 11px 12px; text-align: center; color: #1e293b; }
   </div>
 
   <!-- TABLE -->
+  <div id="lowAttendanceAlert" class="alert-low">⚠️ Students below 75% attendance are highlighted in red!</div>
   <div class="table-wrap">
     <table>
       <thead>

@@ -198,11 +198,15 @@ function display(list = students) {
     const fill  = pct !== null ? pct : 0;
     const label = pct !== null ? `${pct}%` : "N/A";
 
+    const isLow = pct !== null && pct < 75;
+    const rowStyle = isLow ? "background:#fff5f5;" : "";
+    const warnBadge = isLow ? `<span class="badge-warning">⚠️ Low</span>` : "";
+
     return `
-    <tr>
+    <tr style="${rowStyle}">
       <td style="font-size:12px;color:#475569">${today}</td>
       <td style="font-weight:bold;color:#007bff">${s.roll}</td>
-      <td style="font-weight:600">${s.name}</td>
+      <td style="font-weight:600">${s.name}${warnBadge}</td>
       <td style="color:#475569">${s.cls}</td>
       <td><span class="badge ${badgeCls}">${status}</span></td>
       <td>
@@ -224,6 +228,7 @@ function display(list = students) {
   }).join("");
 
   updateStats(list.length, pCount, aCount);
+  checkLowAttendance(list);
 }
 
 function updateStats(total, present, absent) {
@@ -419,4 +424,100 @@ function downloadSampleCSV() {
   a.click();
   URL.revokeObjectURL(url);
   toast("Sample CSV downloaded!", "success");
+}
+
+// =============================================
+//  MARK ALL PRESENT / ABSENT
+// =============================================
+function markAll(status) {
+  if (!students.length) return toast("No students to mark.", "error");
+
+  const uid   = auth.currentUser.uid;
+  const fkey  = toFireKey(todayKey());
+  const BATCH_SIZE = 500;
+  const batches = [];
+
+  for (let i = 0; i < students.length; i += BATCH_SIZE) {
+    const chunk = students.slice(i, i + BATCH_SIZE);
+    const batch = db.batch();
+    chunk.forEach(s => {
+      const ref = db.collection("users").doc(uid).collection("students").doc(s.id);
+      batch.update(ref, { [`attendance.${fkey}`]: status });
+    });
+    batches.push(batch);
+  }
+
+  Promise.all(batches.map(b => b.commit()))
+    .then(() => toast(`All students marked ${status}!`, status === "Present" ? "success" : "error"))
+    .catch(err => toast(err.message, "error"));
+}
+
+// =============================================
+//  EXPORT TO EXCEL (CSV format)
+// =============================================
+function exportToExcel() {
+  if (!students.length) return toast("No students to export.", "error");
+
+  // Get all unique dates from all students
+  const allDates = new Set();
+  students.forEach(s => {
+    Object.keys(s.attendance || {}).forEach(k => allDates.add(k));
+  });
+
+  // Sort dates chronologically
+  const sortedDates = Array.from(allDates).sort((a, b) => {
+    const [da, ma, ya] = a.split("_").map(Number);
+    const [db2, mb, yb] = b.split("_").map(Number);
+    return new Date(ya, ma-1, da) - new Date(yb, mb-1, db2);
+  });
+
+  // Build CSV header
+  const dateHeaders = sortedDates.map(d => d.replace(/_/g, "/"));
+  const header = ["Roll No", "Name", "Class", ...dateHeaders, "Total Present", "Total Days", "Attendance %"];
+
+  // Build rows
+  const rows = students.map(s => {
+    const att    = s.attendance || {};
+    const vals   = sortedDates.map(d => att[d] || "--");
+    const total  = Object.values(att).length;
+    const present = Object.values(att).filter(v => v === "Present").length;
+    const pct    = total > 0 ? Math.round((present / total) * 100) + "%" : "N/A";
+    return [s.roll, s.name, s.cls, ...vals, present, total, pct];
+  });
+
+  // Convert to CSV string
+  const csv = [header, ...rows]
+    .map(row => row.map(cell => `"${cell}"`).join(","))
+    .join("\n");
+
+  // Download
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  const today = todayKey().replace(/\//g, "-");
+  a.href     = url;
+  a.download = `Attendance_Report_${today}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast("Attendance exported successfully!", "success");
+}
+
+// =============================================
+//  LOW ATTENDANCE ALERT
+// =============================================
+function checkLowAttendance(list) {
+  const lowStudents = list.filter(s => {
+    const pct = calcPercent(s.attendance || {});
+    return pct !== null && pct < 75;
+  });
+
+  const alertBox = document.getElementById("lowAttendanceAlert");
+  if (!alertBox) return;
+
+  if (lowStudents.length > 0) {
+    alertBox.style.display = "block";
+    alertBox.innerHTML = `⚠️ <b>${lowStudents.length} student${lowStudents.length > 1 ? "s" : ""}</b> below 75% attendance: ${lowStudents.map(s => `<b>${s.name}</b> (${calcPercent(s.attendance)}%)`).join(", ")}`;
+  } else {
+    alertBox.style.display = "none";
+  }
 }

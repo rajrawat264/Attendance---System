@@ -216,14 +216,6 @@ function display(list = students) {
           <button class="btn-delete"  onclick="del('${s.id}')">Del</button>
         </div>
       </td>
-      <td>
-        <div class="pct-wrap">
-          <div class="pct-track">
-            <div class="pct-fill" style="width:${fill}%;background:${color}"></div>
-          </div>
-          <span class="pct-text" style="color:${color}">${label}</span>
-        </div>
-      </td>
     </tr>`;
   }).join("");
 

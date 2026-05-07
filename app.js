@@ -177,7 +177,7 @@ function display(list = students) {
   let pCount = 0, aCount = 0;
 
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty">No students found.</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty">No students found.</div></td></tr>`;
     updateStats(0, 0, 0);
     return;
   }
@@ -520,4 +520,45 @@ function checkLowAttendance(list) {
   } else {
     alertBox.style.display = "none";
   }
+}
+
+// =============================================
+//  EDIT STUDENT
+// =============================================
+function openEditModal(docId) {
+  const s = students.find(st => st.id === docId);
+  if (!s) return;
+
+  document.getElementById("editDocId").value  = docId;
+  document.getElementById("editRoll").value   = s.roll;
+  document.getElementById("editName").value   = s.name;
+  document.getElementById("editClass").value  = s.cls;
+  document.getElementById("editOverlay").classList.add("open");
+}
+
+function closeEditModal() {
+  document.getElementById("editOverlay").classList.remove("open");
+}
+
+function saveEdit() {
+  const docId = document.getElementById("editDocId").value;
+  const roll  = document.getElementById("editRoll").value.trim();
+  const name  = document.getElementById("editName").value.trim();
+  const cls   = document.getElementById("editClass").value.trim();
+
+  if (!roll || !name || !cls) return toast("Please fill all fields.", "error");
+
+  // Check duplicate roll (excluding current student)
+  if (students.some(s => s.roll === roll && s.id !== docId)) {
+    return toast("Roll No " + roll + " already exists!", "error");
+  }
+
+  const uid = auth.currentUser.uid;
+  db.collection("users").doc(uid).collection("students").doc(docId)
+    .update({ roll, name, cls })
+    .then(() => {
+      toast(name + " updated successfully!", "success");
+      closeEditModal();
+    })
+    .catch(err => toast(err.message, "error"));
 }

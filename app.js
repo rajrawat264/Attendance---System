@@ -1,3 +1,7 @@
+// =============================================
+//  FIREBASE CONFIG
+//  ⚠️ Add Firebase Security Rules before going live!
+// =============================================
 const firebaseConfig = {
   apiKey: "AIzaSyB9WOvs0Ryr3TEpujroDzgb0xJTwESv_FU",
   authDomain: "attendance-management-sy-41cce.firebaseapp.com",
@@ -11,63 +15,100 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db   = firebase.firestore();
 
-let students       = [];
-let deletedStudent = null;
-let unsubscribe    = null;
+// =============================================
+//  STATE
+// =============================================
+let students        = [];   // live mirror of Firestore
+let deletedStudent  = null; // for undo
+let unsubscribe     = null; // Firestore listener handle
 
-function todayKey()   { return new Date().toLocaleDateString("en-GB"); }
-function toFireKey(d) { return d.replace(/\//g, "_"); }
+// =============================================
+//  HELPERS
+// =============================================
+
+// Today as dd/mm/yyyy  →  stored in Firestore as dd_mm_yyyy
+function todayKey()       { return new Date().toLocaleDateString("en-GB"); }
+function toFireKey(d)     { return d.replace(/\//g, "_"); }   // dd/mm/yyyy → dd_mm_yyyy
+function fromFireKey(k)   { return k.replace(/_/g, "/"); }   // dd_mm_yyyy → dd/mm/yyyy
 
 function toast(msg, type = "info") {
   const el = document.getElementById("toast");
   if (!el) return;
   el.textContent = msg;
-  el.className = "show t-" + type;
+  el.className = `show t-${type}`;
   clearTimeout(el._t);
   el._t = setTimeout(() => { el.className = ""; }, 3000);
 }
 
+// =============================================
+//  AUTH
+// =============================================
 function logout() {
   if (unsubscribe) unsubscribe();
   auth.signOut().then(() => window.location.href = "index.html");
 }
 
+// =============================================
+//  FIRESTORE REAL-TIME LISTENER
+//  Each teacher's data: /users/{uid}/students/{docId}
+// =============================================
 function startListener(uid) {
-  unsubscribe = db.collection("users").doc(uid).collection("students")
+  unsubscribe = db
+    .collection("users").doc(uid)
+    .collection("students")
     .orderBy("createdAt", "asc")
     .onSnapshot(snap => {
       students = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       display();
-    }, err => toast("Database error: " + err.message, "error"));
+    }, err => {
+      toast("Database error: " + err.message, "error");
+    });
 }
 
+// =============================================
+//  ADD STUDENT
+// =============================================
 function addStudent() {
   const roll = document.getElementById("roll").value.trim();
   const name = document.getElementById("studentName").value.trim();
   const cls  = document.getElementById("class").value.trim();
-  if (!roll || !name || !cls) return toast("Please fill all fields.", "error");
-  if (students.some(s => s.roll === roll)) return toast("Roll No " + roll + " already exists!", "error");
+
+  if (!roll || !name || !cls) {
+    return toast("Please fill Roll No, Name and Class.", "error");
+  }
+
+  if (students.some(s => s.roll === roll)) {
+    return toast(`Roll No ${roll} already exists!`, "error");
+  }
+
   const uid = auth.currentUser.uid;
   db.collection("users").doc(uid).collection("students").add({
-    roll, name, cls, attendance: {},
+    roll, name, cls,
+    attendance: {},
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(() => {
-    document.getElementById("roll").value = "";
+    document.getElementById("roll").value        = "";
     document.getElementById("studentName").value = "";
-    document.getElementById("class").value = "";
-    toast(name + " added!", "success");
+    document.getElementById("class").value       = "";
+    toast(`${name} added successfully!`, "success");
   }).catch(err => toast(err.message, "error"));
 }
 
+// =============================================
+//  MARK ATTENDANCE
+// =============================================
 function mark(docId, status) {
-  const uid  = auth.currentUser.uid;
-  const fkey = toFireKey(todayKey());
+  const uid   = auth.currentUser.uid;
+  const fkey  = toFireKey(todayKey()); // e.g. 26_04_2026
   db.collection("users").doc(uid).collection("students").doc(docId)
-    .update({ ["attendance." + fkey]: status })
-    .then(() => toast("Marked " + status, status === "Present" ? "success" : "error"))
+    .update({ [`attendance.${fkey}`]: status })
+    .then(() => toast(`Marked ${status}`, status === "Present" ? "success" : "error"))
     .catch(err => toast(err.message, "error"));
 }
 
+// =============================================
+//  DELETE & UNDO
+// =============================================
 function del(docId) {
   deletedStudent = students.find(s => s.id === docId);
   const uid = auth.currentUser.uid;
@@ -83,14 +124,23 @@ function undoDelete() {
   const { id, ...data } = deletedStudent;
   db.collection("users").doc(uid).collection("students").doc(id)
     .set(data)
-    .then(() => { deletedStudent = null; toast("Student restored!", "success"); })
+    .then(() => {
+      deletedStudent = null;
+      toast("Student restored!", "success");
+    })
     .catch(err => toast(err.message, "error"));
 }
 
+// =============================================
+//  SEARCH
+// =============================================
 function searchStudent() {
   const val = document.getElementById("searchInput").value.trim().toLowerCase();
   if (!val) return toast("Enter a search term.", "error");
-  display(students.filter(s => s.roll.toLowerCase().includes(val) || s.name.toLowerCase().includes(val)));
+  const filtered = students.filter(s =>
+    s.roll.toLowerCase().includes(val) || s.name.toLowerCase().includes(val)
+  );
+  display(filtered);
 }
 
 function resetSearch() {
@@ -98,25 +148,36 @@ function resetSearch() {
   display();
 }
 
+// =============================================
+//  ATTENDANCE % CALCULATION
+// =============================================
 function calcPercent(attendance) {
   if (!attendance || !Object.keys(attendance).length) return null;
-  const vals = Object.values(attendance);
-  return Math.round((vals.filter(v => v === "Present").length / vals.length) * 100);
+  const vals  = Object.values(attendance);
+  const total = vals.length;
+  const p     = vals.filter(v => v === "Present").length;
+  return Math.round((p / total) * 100);
 }
 
 function pctColor(pct) {
-  return pct >= 75 ? "#16a34a" : pct >= 50 ? "#ea580c" : "#dc2626";
+  if (pct >= 75) return "#16a34a";
+  if (pct >= 50) return "#ea580c";
+  return "#dc2626";
 }
 
+// =============================================
+//  DISPLAY TABLE
+// =============================================
 function display(list = students) {
-  const tbody = document.getElementById("tableBody");
+  const tbody  = document.getElementById("tableBody");
   if (!tbody) return;
-  const today = todayKey();
-  const fkey  = toFireKey(today);
+
+  const today  = todayKey();
+  const fkey   = toFireKey(today);
   let pCount = 0, aCount = 0;
 
   if (!list.length) {
-    tbody.innerHTML = "<tr><td colspan='7'><div class='empty'>No students found.</div></td></tr>";
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty">No students found.</div></td></tr>`;
     updateStats(0, 0, 0);
     return;
   }
@@ -124,27 +185,44 @@ function display(list = students) {
   tbody.innerHTML = list.map(s => {
     const att    = s.attendance || {};
     const status = att[fkey] || "--";
+
     if (status === "Present") pCount++;
     if (status === "Absent")  aCount++;
-    const badgeCls = status === "Present" ? "badge-present" : status === "Absent" ? "badge-absent" : "badge-none";
+
+    const badgeCls = status === "Present" ? "badge-present"
+                   : status === "Absent"  ? "badge-absent"
+                   : "badge-none";
+
     const pct   = calcPercent(att);
     const color = pct !== null ? pctColor(pct) : "#94a3b8";
     const fill  = pct !== null ? pct : 0;
-    const label = pct !== null ? pct + "%" : "N/A";
-    return "<tr>" +
-      "<td style='font-size:12px;color:#475569'>" + today + "</td>" +
-      "<td style='font-weight:bold;color:#007bff'>" + s.roll + "</td>" +
-      "<td style='font-weight:600'>" + s.name + "</td>" +
-      "<td style='color:#475569'>" + s.cls + "</td>" +
-      "<td><span class='badge " + badgeCls + "'>" + status + "</span></td>" +
-      "<td><div class='td-actions'>" +
-        "<button class='btn-present' onclick=\"mark('" + s.id + "','Present')\">P</button>" +
-        "<button class='btn-absent' onclick=\"mark('" + s.id + "','Absent')\">A</button>" +
-        "<button class='btn-delete' onclick=\"del('" + s.id + "')\">Del</button>" +
-      "</div></td>" +
-      "<td><div class='pct-wrap'><div class='pct-track'><div class='pct-fill' style='width:" + fill + "%;background:" + color + "'></div></div><span class='pct-text' style='color:" + color + "'>" + label + "</span></div></td>" +
-    "</tr>";
+    const label = pct !== null ? `${pct}%` : "N/A";
+
+    return `
+    <tr>
+      <td style="font-size:12px;color:#475569">${today}</td>
+      <td style="font-weight:bold;color:#007bff">${s.roll}</td>
+      <td style="font-weight:600">${s.name}</td>
+      <td style="color:#475569">${s.cls}</td>
+      <td><span class="badge ${badgeCls}">${status}</span></td>
+      <td>
+        <div class="td-actions">
+          <button class="btn-present" onclick="mark('${s.id}','Present')">P</button>
+          <button class="btn-absent"  onclick="mark('${s.id}','Absent')">A</button>
+          <button class="btn-delete"  onclick="del('${s.id}')">Del</button>
+        </div>
+      </td>
+      <td>
+        <div class="pct-wrap">
+          <div class="pct-track">
+            <div class="pct-fill" style="width:${fill}%;background:${color}"></div>
+          </div>
+          <span class="pct-text" style="color:${color}">${label}</span>
+        </div>
+      </td>
+    </tr>`;
   }).join("");
+
   updateStats(list.length, pCount, aCount);
 }
 
@@ -157,34 +235,188 @@ function updateStats(total, present, absent) {
   if (a) a.textContent = absent;
 }
 
+// =============================================
+//  MONTHLY % MODAL
+// =============================================
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 function showMonthlyPercentage() {
   if (!students.length) return toast("No students to show.", "error");
+
   const body = document.getElementById("modalBody");
+
   body.innerHTML = students.map(s => {
     const att = s.attendance || {};
+
+    // Group by month
     const months = {};
     for (const [key, val] of Object.entries(att)) {
+      // key format: dd_mm_yyyy
       const parts = key.split("_");
       if (parts.length < 3) continue;
-      const label = MONTHS[parseInt(parts[1]) - 1] + " " + parts[2];
+      const label = `${MONTHS[parseInt(parts[1]) - 1]} ${parts[2]}`;
       if (!months[label]) months[label] = { p: 0, total: 0 };
       months[label].total++;
       if (val === "Present") months[label].p++;
     }
+
     const monthRows = Object.entries(months).map(([m, data]) => {
       const pct = Math.round((data.p / data.total) * 100);
       const cls = pct >= 75 ? "pct-good" : pct >= 50 ? "pct-warn" : "pct-bad";
-      return "<div class='month-row'><div><div class='month-name'>" + m + "</div><div class='month-sub'>" + data.p + " present / " + data.total + " days</div></div><div class='pct-big " + cls + "'>" + pct + "%</div></div>";
-    }).join("") || "<p style='color:#94a3b8;font-size:13px'>No attendance recorded yet.</p>";
+      return `<div class="month-row">
+        <div>
+          <div class="month-name">${m}</div>
+          <div class="month-sub">${data.p} present / ${data.total} days</div>
+        </div>
+        <div class="pct-big ${cls}">${pct}%</div>
+      </div>`;
+    }).join("") || `<p style="color:#94a3b8;font-size:13px">No attendance recorded yet.</p>`;
+
     const overall = calcPercent(att);
-    const badge = overall !== null ? "<span class='badge " + (overall >= 75 ? "badge-present" : "badge-absent") + "'>" + overall + "% overall</span>" : "";
-    return "<div class='student-block'><div class='student-title'><span>" + s.roll + " - " + s.name + " (" + s.cls + ")</span>" + badge + "</div>" + monthRows + "</div>";
+    const overallBadge = overall !== null
+      ? `<span class="badge ${overall >= 75 ? "badge-present" : "badge-absent"}">${overall}% overall</span>`
+      : "";
+
+    return `<div class="student-block">
+      <div class="student-title">
+        <span><b>${s.roll}</b> — ${s.name} (${s.cls})</span>
+        ${overallBadge}
+      </div>
+      ${monthRows}
+    </div>`;
   }).join("");
+
   document.getElementById("overlay").classList.add("open");
 }
 
 function closeModal() {
   document.getElementById("overlay").classList.remove("open");
+}
+
+// =============================================
+//  BULK IMPORT FROM CSV
+//  CSV format: Roll No, Name, Class (one per line)
+//  Example:
+//  2201680,Raj,B.Tech CSE - B
+//  2201681,Rahul,B.Tech CSE - B
+// =============================================
+function bulkImport() {
+  const input = document.getElementById("csvFile");
+  if (!input || !input.files.length) {
+    return toast("Please select a CSV file first.", "error");
+  }
+
+  const file = input.files[0];
+  if (!file.name.endsWith(".csv")) {
+    return toast("Please upload a .csv file only.", "error");
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const lines = e.target.result.split("\n").filter(l => l.trim());
+    const uid   = auth.currentUser.uid;
+
+    let added   = 0;
+    let skipped = 0;
+    let errors  = 0;
+
+    // Skip header row if it contains "roll" or "name"
+    const startIndex = lines[0].toLowerCase().includes("roll") ||
+                       lines[0].toLowerCase().includes("name") ? 1 : 0;
+
+    // Collect all valid new student records
+    const newStudents = [];
+    for (let i = startIndex; i < lines.length; i++) {
+      const parts = lines[i].split(",").map(p => p.trim());
+      if (parts.length < 3) { errors++; continue; }
+
+      const roll = parts[0];
+      const name = parts[1];
+      const cls  = parts.slice(2).join(",").trim();
+
+      if (!roll || !name || !cls) { errors++; continue; }
+
+      // Skip duplicates already in Firestore
+      if (students.some(s => s.roll === roll)) { skipped++; continue; }
+
+      // Skip duplicates within this CSV itself
+      if (newStudents.some(s => s.roll === roll)) { skipped++; continue; }
+
+      newStudents.push({ roll, name, cls });
+      added++;
+    }
+
+    if (added === 0) {
+      return toast("No new students to add. Skipped: " + skipped + " duplicates.", "error");
+    }
+
+    // Firebase allows max 500 writes per batch
+    // Split into multiple batches to support unlimited students
+    const BATCH_SIZE = 500;
+    const batches = [];
+
+    for (let i = 0; i < newStudents.length; i += BATCH_SIZE) {
+      const chunk = newStudents.slice(i, i + BATCH_SIZE);
+      const batch = db.batch();
+      chunk.forEach(s => {
+        const ref = db.collection("users").doc(uid).collection("students").doc();
+        batch.set(ref, {
+          roll: s.roll,
+          name: s.name,
+          cls:  s.cls,
+          attendance: {},
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      });
+      batches.push(batch);
+    }
+
+    // Commit all batches — supports any number of students
+    Promise.all(batches.map(b => b.commit()))
+      .then(() => {
+        input.value = "";
+        document.getElementById("csvFileName").textContent = "No file chosen";
+        let msg = added + " students added successfully!";
+        if (skipped > 0) msg += " (" + skipped + " duplicates skipped)";
+        if (errors  > 0) msg += " (" + errors  + " rows had errors)";
+        toast(msg, "success");
+        closeBulkModal();
+      })
+      .catch(err => toast("Import failed: " + err.message, "error"));
+  };
+
+  reader.readAsText(file);
+}
+
+function openBulkModal() {
+  document.getElementById("bulkOverlay").classList.add("open");
+}
+
+function closeBulkModal() {
+  document.getElementById("bulkOverlay").classList.remove("open");
+  const input = document.getElementById("csvFile");
+  if (input) input.value = "";
+  const label = document.getElementById("csvFileName");
+  if (label) label.textContent = "No file chosen";
+}
+
+function handleFileSelect(input) {
+  const label = document.getElementById("csvFileName");
+  if (input.files.length > 0) {
+    label.textContent = input.files[0].name;
+  } else {
+    label.textContent = "No file chosen";
+  }
+}
+
+function downloadSampleCSV() {
+  const sample = "Roll No,Name,Class\n2201680,Raj,B.Tech CSE - B\n2201681,Rahul,B.Tech CSE - B\n2201682,Priya,B.Tech CSE - B\n2201683,Rishi,B.Tech CSE - B\n2201684,Sarup,B.Tech CSE - B";
+  const blob = new Blob([sample], { type: "text/csv" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = "sample_students.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+  toast("Sample CSV downloaded!", "success");
 }

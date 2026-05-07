@@ -63,6 +63,7 @@ button:hover { opacity: 0.88; transform: translateY(-1px); }
 .btn-all-p   { background: #15803d; }
 .btn-all-a   { background: #b91c1c; }
 .btn-export  { background: #0f766e; }
+.btn-edit    { background: #2563eb; padding:5px 10px; font-size:12px; }
 .alert-low   { background: #fef2f2; border-left: 4px solid #dc2626; padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; font-size: 13px; color: #991b1b; font-weight: 600; display:none; }
 .badge-warning { background: #fef3c7; color: #92400e; font-size: 11px; padding: 2px 7px; border-radius: 10px; margin-left: 6px; font-weight: 700; }
 .btn-sample  { background: #475569; font-size:12px; padding:7px 12px; }
@@ -368,7 +369,7 @@ td { padding: 11px 12px; text-align: center; color: #1e293b; }
           <th>Class</th>
           <th>Status</th>
           <th>Actions</th>
-          <th>Attendance %</th>
+          
         </tr>
       </thead>
       <tbody id="tableBody">
@@ -391,6 +392,36 @@ td { padding: 11px 12px; text-align: center; color: #1e293b; }
 </div>
 
 <!-- Toast -->
+
+
+<!-- Edit Student Modal -->
+<div class="overlay" id="editOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>✏️ Edit Student Details</h3>
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editDocId">
+      <div style="margin-bottom:12px;">
+        <label style="font-size:13px;font-weight:600;color:#475569;display:block;margin-bottom:5px;">Roll No</label>
+        <input type="text" id="editRoll" placeholder="Roll No" style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:13px;font-weight:600;color:#475569;display:block;margin-bottom:5px;">Student Name</label>
+        <input type="text" id="editName" placeholder="Student Name" style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;">
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:13px;font-weight:600;color:#475569;display:block;margin-bottom:5px;">Class / Section</label>
+        <input type="text" id="editClass" placeholder="Class / Section" style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;">
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-add" onclick="saveEdit()" style="flex:1;">💾 Save Changes</button>
+        <button class="btn-gray" onclick="closeEditModal()" style="flex:1;background:#6c757d;">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Bulk Import Modal -->
 <div class="overlay" id="bulkOverlay">

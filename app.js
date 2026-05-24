@@ -317,9 +317,8 @@ function bulkImport() {
     let skipped = 0;
     let errors  = 0;
 
-    // Skip header row if it contains "roll" or "name"
-    const startIndex = lines[0].toLowerCase().includes("roll") ||
-                       lines[0].toLowerCase().includes("name") ? 1 : 0;
+    // Always skip first row as it is the header row
+    const startIndex = 1;
 
     // Collect all valid new student records
     const newStudents = [];

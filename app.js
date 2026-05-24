@@ -324,7 +324,7 @@ function bulkImport() {
     const newStudents = [];
     for (let i = startIndex; i < lines.length; i++) {
       const parts = lines[i].split(",").map(p => p.trim());
-      if (parts.length < 3) { errors++; continue; }
+      if (parts.length < 2) { errors++; continue; }
 
       const roll = parts[0];
       const name = parts[1];

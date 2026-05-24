@@ -328,9 +328,10 @@ function bulkImport() {
 
       const roll = parts[0];
       const name = parts[1];
-      const cls  = parts.slice(2).join(",").trim();
+      // Class is optional — use "N/A" if not provided
+      const cls  = parts.length >= 3 ? parts.slice(2).join(",").trim() : "N/A";
 
-      if (!roll || !name || !cls) { errors++; continue; }
+      if (!roll || !name) { errors++; continue; }
 
       // Skip duplicates already in Firestore
       if (students.some(s => s.roll === roll)) { skipped++; continue; }
